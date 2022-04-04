@@ -1,0 +1,194 @@
+kaggle datasets download -d olistbr/brazilian-ecommerce
+
+
+
+
+ingestao de dados 
+
+1 -) Criacao dos zonas
+Acessar o datanode para criar as partições do datalake
+
+docker exec -it datanode /bin/bash
+
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone
+hdfs dfs -mkdir /user/hive/warehouse/raw_zone
+hdfs dfs -mkdir /user/hive/warehouse/refined_zone
+
+
+Particionamento
+
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone/olist_customers
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone/olist_geolocation
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone/olist_order_items
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone/olist_order_payments
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone/olist_order_reviews
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone/olist_orders
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone/olist_products
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone/olist_sellers
+hdfs dfs -mkdir /user/hive/warehouse/loading_zone/product_category_name_translation
+
+
+2-) upload dos arquivos
+ex.
+hdfs dfs -copyFromLocal *nome_aquivo* /user/hive/warehouse/loading_zone
+
+*Antes de Carregar o arquivo para o hdfs, copie para o container
+ex.:
+docker cp .\olist_customers_dataset.csv namenode:/tmp
+docker cp .\olist_geolocation_dataset.csv namenode:/tmp
+docker cp .\olist_order_items_dataset.csv namenode:/tmp
+docker cp .\olist_order_payments_dataset.csv namenode:/tmp
+docker cp .\olist_order_reviews_dataset.csv namenode:/tmp
+docker cp .\olist_products_dataset.csv namenode:/tmp
+docker cp .\olist_sellers_dataset.csv namenode:/tmp
+docker cp .\product_category_name_translation.csv namenode:/tmp
+docker cp .\olist_orders_dataset.csv namenode:/tmp
+
+
+
+
+
+
+hdfs dfs -copyFromLocal /tmp/olist_customers_dataset.csv /user/hive/warehouse/loading_zone/olist_customers
+hdfs dfs -copyFromLocal /tmp/olist_geolocation_dataset.csv /user/hive/warehouse/loading_zone/olist_geolocation
+hdfs dfs -copyFromLocal /tmp/olist_order_items_dataset.csv /user/hive/warehouse/loading_zone/olist_order_items
+hdfs dfs -copyFromLocal /tmp/olist_order_payments_dataset.csv /user/hive/warehouse/loading_zone/olist_order_payments
+hdfs dfs -copyFromLocal /tmp/olist_order_reviews_dataset.csv /user/hive/warehouse/loading_zone/olist_order_reviews
+hdfs dfs -copyFromLocal /tmp/olist_orders_dataset.csv /user/hive/warehouse/loading_zone/olist_orders
+hdfs dfs -copyFromLocal /tmp/olist_products_dataset.csv /user/hive/warehouse/loading_zone/olist_products
+hdfs dfs -copyFromLocal /tmp/olist_sellers_dataset.csv /user/hive/warehouse/loading_zone/olist_sellers
+hdfs dfs -copyFromLocal /tmp/product_category_name_translation.csv /user/hive/warehouse/loading_zone/product_category_name_translation
+
+
+
+
+Miguel
+11996993103
+From Rafael Xavier to Everyone 07:41 PM
+21 98636-4342
+From Kaísa Soares to Everyone 07:41 PM
+15 997218871
+
+
+from pyhive import hive
+from LogHandler import logger
+import pandas as pd
+import os
+from dotenv import load_dotenv
+load_dotenv(".env")
+
+host_name = os.getenv("localhost")
+port=os.getenv("10000")
+user=os.getenv("hive")
+
+conn = hive.Connection(host="localhost", port=10000, username="hive")
+
+import pyhive 
+import pandas as pd
+import os
+
+
+
+host_name = os.getenv("localhost")
+port=os.getenv("10000")
+user=os.getenv("hive")
+password=os.getenv("")
+database=os.getenv("raw")
+
+conn = hive.Connection(host=host_name, port=port, database=database, auth='CUSTOM')
+
+
+
+ Running setup.py install for sasl ... error
+    ERROR: Command errored out with exit status 1:
+     command: /opt/anaconda3/bin/python -u -c 'import sys, setuptools, tokenize; sys.argv[0] = '"'"'/tmp/pip-install-i0rob4wh/sasl/setup.py'"'"'; __file__='"'"'/tmp/pip-install-i0rob4wh/sasl/setup.py'"'"';f=getattr(tokenize, '"'"'open'"'"', open)(__file__);code=f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /tmp/pip-record-ctxm12l9/install-record.txt --single-version-externally-managed --compile --install-headers /opt/anaconda3/include/python3.6m/sasl
+         cwd: /tmp/pip-install-i0rob4wh/sasl/
+    Complete output (25 lines):
+    running install
+    running build
+    running build_py
+    creating build
+    creating build/lib.linux-x86_64-3.6
+    creating build/lib.linux-x86_64-3.6/sasl
+    copying sasl/__init__.py -> build/lib.linux-x86_64-3.6/sasl
+    running egg_info
+    writing sasl.egg-info/PKG-INFO
+    writing dependency_links to sasl.egg-info/dependency_links.txt
+    writing requirements to sasl.egg-info/requires.txt
+    writing top-level names to sasl.egg-info/top_level.txt
+    reading manifest file 'sasl.egg-info/SOURCES.txt'
+    reading manifest template 'MANIFEST.in'
+    writing manifest file 'sasl.egg-info/SOURCES.txt'
+    copying sasl/saslwrapper.cpp -> build/lib.linux-x86_64-3.6/sasl
+    copying sasl/saslwrapper.h -> build/lib.linux-x86_64-3.6/sasl
+    copying sasl/saslwrapper.pyx -> build/lib.linux-x86_64-3.6/sasl
+    running build_ext
+    building 'sasl.saslwrapper' extension
+    creating build/temp.linux-x86_64-3.6
+    creating build/temp.linux-x86_64-3.6/sasl
+    gcc -pthread -B /opt/anaconda3/compiler_compat -Wl,--sysroot=/ -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -Isasl -I/opt/anaconda3/include/python3.6m -c sasl/saslwrapper.cpp -o build/temp.linux-x86_64-3.6/sasl/saslwrapper.o
+    gcc: error trying to exec 'cc1plus': execvp: No such file or directory
+    error: command 'gcc' failed with exit status 1
+    ----------------------------------------
+ERROR: Command errored out with exit status 1: /opt/anaconda3/bin/python -u -c 'import sys, setuptools, tokenize; sys.argv[0] = '"'"'/tmp/pip-install-i0rob4wh/sasl/setup.py'"'"'; __file__='"'"'/tmp/pip-install-i0rob4wh/sasl/setup.py'"'"';f=getattr(tokenize, '"'"'open'"'"', open)(__file__);code=f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /tmp/pip-record-ctxm12l9/install-record.txt --single-version-externally-managed --compile --install-headers /opt/anaconda3/include/python3.6m/sasl Check the logs for full command output.
+
+
+
+libsasl2-modules
+
+from pyhive import hive
+import pandas as pd
+import os
+import sasl
+
+
+
+host_name = os.getenv("hive-server")
+port=os.getenv("10000")
+user=os.getenv("hive")
+password=os.getenv("")
+database=os.getenv("raw")
+
+
+
+
+
+conn = hive.connect(host='hive-server', port='10000')
+
+
+print(conn)
+
+
+
+
+from hivejdbc import connect
+conn = connect('hive-server', 'default')
+
+
+import pyhive 
+import pandas as pd
+
+conn = hive.Connection(host="hive-server", port=10000, username="")
+
+df = pd.read_sql("SELECT * FROM raw.hue__tmp_olist_customers_dataset LIMIT 50", conn)
+
+print (df.head())
+
+-------------------------------------------
+geopy ex.
+
+from geopy.geocoders import Nominatim
+geolocator = Nominatim(user_agent="default")
+location = geolocator.reverse("-23.54612896641469, -46.64295148361138")
+print(location.address)
+
+----------------------------------------------
+pycep
+
+from pycep_correios import get_address_from_cep, WebService
+
+address = get_address_from_cep('01046-001', webservice=WebService.APICEP)
+
+print(address)
+
+----------------------
